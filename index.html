@@ -365,16 +365,6 @@ tr:last-child td{border-bottom:none;}
 
 footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-align:center;font-size:11.5px;color:var(--ink-faint);line-height:1.6;}
 
-.profile-list{display:flex;flex-direction:column;gap:8px;margin:14px 0;}
-.profile-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:background .15s ease,border-color .15s ease;background:var(--card);}
-.profile-row:hover{background:var(--bg);border-color:var(--green);}
-.profile-row .pr-avatar{width:38px;height:38px;border-radius:50%;background:var(--green-soft);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
-.profile-row .pr-info{min-width:0;flex:1;}
-.profile-row .pr-name{font-weight:700;font-size:13.5px;color:var(--ink);}
-.profile-row .pr-email{font-size:11.5px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.profile-row .pr-delete{font-size:11px;color:var(--coral);font-weight:600;padding:5px 9px;border-radius:7px;flex-shrink:0;}
-.profile-row .pr-delete:hover{background:var(--coral-soft);}
-
 #toast{
   position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
   background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:99px;font-size:13.5px;
@@ -410,29 +400,34 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   </div>
 </div>
 
-<!-- ================= PROFILE PICKER (multi-user) ================= -->
-<div id="profileScreen" class="id-wrap hidden">
-  <div class="id-card" style="max-width:460px;">
-    <div class="id-logo"><div class="mark">👥</div><b>Pocket Friendly</b></div>
-    <p class="lead">Who's using this tracker?</p>
-    <div id="profileList" class="profile-list"></div>
-    <button class="btn btn-outline btn-block" id="profileAddBtn" style="margin-top:6px;">+ Add a new user</button>
-    <p class="id-note">🔐 Each user's data is kept separate on this device and is only visible after picking their profile.</p>
+<!-- ================= LOGIN (multi-user, private) ================= -->
+<div id="loginScreen" class="id-wrap hidden">
+  <div class="id-card">
+    <div class="id-logo"><div class="mark">👤</div><b>Pocket Friendly</b></div>
+    <p class="lead">Log in to your account.</p>
+    <div id="loginAlertSlot"></div>
+    <div class="field"><label for="loginEmail">Email</label><input id="loginEmail" type="email" placeholder="e.g. you@example.com" autocomplete="username"></div>
+    <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" placeholder="Your password" autocomplete="current-password"></div>
+    <button class="btn btn-primary btn-block" id="loginSubmitBtn">🔓 Log In</button>
+    <div class="divider-or">or</div>
+    <button class="btn btn-outline btn-block" id="loginSignupBtn">Create an account</button>
+    <button class="btn btn-outline btn-block" id="idDemoBtn" style="margin-top:8px;">✨ Try the demo (sample data included)</button>
+    <p class="id-note">🔐 Your data is private — only visible after logging in with your own email and password. No one else can see or select your account.</p>
   </div>
 </div>
 
-<!-- ================= IDENTITY / FIRST-RUN SCREEN ================= -->
+<!-- ================= SIGN UP SCREEN ================= -->
 <div id="identityScreen" class="id-wrap hidden">
   <div class="id-card">
     <div class="id-logo"><div class="mark">🌱</div><b>Pocket Friendly</b></div>
-    <p class="lead" id="identityLead">Set up your personal copy of Pocket Friendly. Your name and email identify this profile.</p>
+    <p class="lead">Create your personal account. Your data will only be accessible with your email and password.</p>
     <div id="idAlertSlot"></div>
     <div class="field"><label for="idName">Full name</label><input id="idName" type="text" placeholder="e.g. Aishwarya Khobragade"></div>
-    <div class="field"><label for="idEmail">Email</label><input id="idEmail" type="email" placeholder="e.g. you@example.com"></div>
-    <button class="btn btn-primary btn-block" id="idSaveBtn">👤 Create My Profile</button>
-    <div class="divider-or">or</div>
-    <button class="btn btn-outline btn-block" id="idDemoBtn">✨ Try the demo (sample data included)</button>
-    <button class="btn btn-outline btn-block hidden" id="idBackBtn" style="margin-top:8px;">← Back to profiles</button>
+    <div class="field"><label for="idEmail">Email</label><input id="idEmail" type="email" placeholder="e.g. you@example.com" autocomplete="username"></div>
+    <div class="field"><label for="idPassword">Password</label><input id="idPassword" type="password" placeholder="Choose a password" autocomplete="new-password"></div>
+    <div class="field"><label for="idPasswordConfirm">Confirm password</label><input id="idPasswordConfirm" type="password" placeholder="Re-enter password" autocomplete="new-password"></div>
+    <button class="btn btn-primary btn-block" id="idSaveBtn">👤 Create Account</button>
+    <button class="btn btn-outline btn-block" id="idBackBtn" style="margin-top:8px;">← Back to login</button>
     <p class="id-note">🔐 This tracker is for personal use only. Nothing is uploaded — everything lives in this browser via localStorage. Clearing browser data will erase it.</p>
   </div>
 </div>
@@ -547,7 +542,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   function isGateUnlocked(){ return sessionStorage.getItem("pf_gate_unlocked") === "1"; }
   function unlockGate(){ sessionStorage.setItem("pf_gate_unlocked","1"); }
   function showGateScreen(alertMsg){
-    document.getElementById("profileScreen").classList.add("hidden");
+    document.getElementById("loginScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.add("hidden");
     document.getElementById("appShell").classList.add("hidden");
     document.getElementById("accessGateScreen").classList.remove("hidden");
@@ -563,10 +558,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     const profiles = loadProfiles();
     if(activeId && profiles.some(p=>p.id===activeId)){
       bootApp();
-    } else if(profiles.length){
-      showProfileScreen();
     } else {
-      showIdentityScreen(null);
+      showLoginScreen(null);
     }
   }
   document.getElementById("gateSubmitBtn").addEventListener("click", attemptGateUnlock);
@@ -649,15 +642,44 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     Object.keys(defaults).forEach(k=>{ if(!(k in parsed)) parsed[k]=defaults[k]; });
     return parsed;
   }
-  // creates a brand-new profile (does not overwrite any existing one) and makes it active
-  function createProfile(name, email){
+  function genSalt(){
+    return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  async function hashPassword(password, salt){
+    const enc = new TextEncoder();
+    const digest = await crypto.subtle.digest("SHA-256", enc.encode(salt+":"+password));
+    return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  // creates a brand-new account (does not overwrite any existing one) and logs into it
+  async function createProfile(name, email, password){
     const id = uid();
+    const salt = genSalt();
+    const passwordHash = await hashPassword(password, salt);
     const profiles = loadProfiles();
-    profiles.push({id, name, email});
+    profiles.push({id, name, email, salt, passwordHash});
     saveProfiles(profiles);
     setActiveProfileId(id);
     identity = {name, email};
     return id;
+  }
+  // checks email+password against stored accounts without ever exposing who else has an account
+  async function attemptLogin(email, password){
+    const profiles = loadProfiles();
+    const p = profiles.find(x=>x.email.toLowerCase()===email.toLowerCase().trim());
+    if(!p) return false;
+    if(!p.passwordHash){
+      // account migrated from an older version with no password set — the first
+      // successful login sets whatever password is entered
+      const salt = genSalt();
+      p.salt = salt;
+      p.passwordHash = await hashPassword(password, salt);
+      saveProfiles(profiles.map(x=>x.id===p.id?p:x));
+      setActiveProfileId(p.id);
+      return true;
+    }
+    const hash = await hashPassword(password, p.salt);
+    if(hash===p.passwordHash){ setActiveProfileId(p.id); return true; }
+    return false;
   }
   function loadIdentity(){
     const id = getActiveProfileId();
@@ -716,53 +738,61 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   function addYears(n){ const d=new Date(); d.setFullYear(d.getFullYear()+n); return d.toISOString().slice(0,10); }
 
   /* ================= PROFILE PICKER & IDENTITY SCREEN (multi-user) ================= */
-  function showProfileScreen(){
+  function showLoginScreen(alertMsg){
     document.getElementById("accessGateScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.add("hidden");
     document.getElementById("appShell").classList.add("hidden");
-    document.getElementById("profileScreen").classList.remove("hidden");
-    renderProfileList();
-  }
-  function renderProfileList(){
-    const profiles = loadProfiles();
-    const wrap = document.getElementById("profileList");
-    const backBtn = document.getElementById("idBackBtn");
-    if(backBtn) backBtn.classList.toggle("hidden", profiles.length===0);
-    if(!profiles.length){
-      wrap.innerHTML = `<div class="empty" style="padding:10px 0;">No profiles yet — add one to get started.</div>`;
-      return;
-    }
-    wrap.innerHTML = profiles.map(p=>`
-      <div class="profile-row" onclick="PF.selectProfile('${p.id}')">
-        <div class="pr-avatar">${escapeHtml((p.name||"U").trim().charAt(0).toUpperCase())}</div>
-        <div class="pr-info"><div class="pr-name">${escapeHtml(p.name)}</div><div class="pr-email">${escapeHtml(p.email)}</div></div>
-        <div class="pr-delete" onclick="event.stopPropagation(); PF.deleteProfile('${p.id}')">Remove</div>
-      </div>`).join("");
+    document.getElementById("loginScreen").classList.remove("hidden");
+    document.getElementById("loginAlertSlot").innerHTML = alertMsg ? `<div class="id-alert">🔒 ${escapeHtml(alertMsg)}</div>` : "";
+    document.getElementById("loginPassword").value = "";
   }
   function showIdentityScreen(alertMsg){
-    document.getElementById("profileScreen").classList.add("hidden");
+    document.getElementById("loginScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.remove("hidden");
     document.getElementById("appShell").classList.add("hidden");
     document.getElementById("idAlertSlot").innerHTML = alertMsg ? `<div class="id-alert">🔒 ${alertMsg}</div>` : "";
-    const lead = document.getElementById("identityLead");
-    if(lead) lead.textContent = loadProfiles().length ? "Add another user to this device. Each person gets their own private data." : "Set up your personal copy of Pocket Friendly. Your name and email identify this profile.";
   }
-  document.getElementById("idBackBtn").addEventListener("click", showProfileScreen);
-  document.getElementById("profileAddBtn").addEventListener("click", ()=>showIdentityScreen(null));
+  document.getElementById("idBackBtn").addEventListener("click", ()=>showLoginScreen(null));
+  document.getElementById("loginSignupBtn").addEventListener("click", ()=>showIdentityScreen(null));
 
-  document.getElementById("idSaveBtn").addEventListener("click", ()=>{
+  document.getElementById("loginSubmitBtn").addEventListener("click", async ()=>{
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    if(!email || !password){ showLoginScreen("Please enter your email and password."); return; }
+    const ok = await attemptLogin(email, password);
+    if(ok){ bootApp(); } else { showLoginScreen("Invalid email or password."); }
+  });
+  document.getElementById("loginPassword").addEventListener("keydown", e=>{ if(e.key==="Enter") document.getElementById("loginSubmitBtn").click(); });
+
+  document.getElementById("idSaveBtn").addEventListener("click", async ()=>{
     const name = document.getElementById("idName").value.trim();
     const email = document.getElementById("idEmail").value.trim();
+    const password = document.getElementById("idPassword").value;
+    const confirmPw = document.getElementById("idPasswordConfirm").value;
     if(!name || !email){ showToast("Please enter both name and email"); return; }
     if(!/^\S+@\S+\.\S+$/.test(email)){ showToast("Please enter a valid email address"); return; }
-    createProfile(name, email);
+    if(!password || password.length<4){ showToast("Please choose a password with at least 4 characters"); return; }
+    if(password!==confirmPw){ showToast("Passwords do not match"); return; }
+    if(loadProfiles().some(p=>p.email.toLowerCase()===email.toLowerCase())){
+      showIdentityScreen("An account with this email already exists. Please log in instead.");
+      return;
+    }
+    await createProfile(name, email, password);
     data = freshData();
     saveData(true);
     bootApp();
   });
 
-  document.getElementById("idDemoBtn").addEventListener("click", ()=>{
-    createProfile("Aishwarya Khobragade", "khobragadeaishwarya08@gmail.com");
+  document.getElementById("idDemoBtn").addEventListener("click", async ()=>{
+    const demoEmail = "demo@pocketfriendly.app";
+    const existing = loadProfiles().find(p=>p.email===demoEmail);
+    if(existing){
+      setActiveProfileId(existing.id);
+      bootApp();
+      showToast("Demo profile loaded");
+      return;
+    }
+    await createProfile("Aishwarya Khobragade", demoEmail, "demo-account");
     data = seedDemoData();
     saveData(true);
     bootApp();
@@ -773,7 +803,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   function bootApp(){
     identity = loadIdentity();
     data = loadData();
-    document.getElementById("profileScreen").classList.add("hidden");
+    document.getElementById("loginScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.add("hidden");
     document.getElementById("appShell").classList.remove("hidden");
     document.documentElement.setAttribute("data-theme", data.theme || "light");
@@ -1961,7 +1991,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
           <div class="field"><label>Full name</label><input value="${escapeHtml(identity.name)}" readonly></div>
           <div class="field"><label>Email</label><input value="${escapeHtml(identity.email)}" readonly></div>
         </div>
-        <div class="st-sub" style="margin-top:6px;">This device has ${loadProfiles().length} profile${loadProfiles().length===1?'':'s'} set up. Each profile's data is kept separate.</div>
+        <div class="st-sub" style="margin-top:6px;">Your data is private to this account and only accessible after logging in with your email and password.</div>
         <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
           <button class="btn btn-outline" onclick="PF.switchUser()">🔁 Switch User</button>
           <button class="btn btn-outline" onclick="PF.logout()">🔒 Logout</button>
@@ -2184,7 +2214,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     },
 
     resetAll(){
-      if(!confirm(`This will permanently erase ${identity? identity.name+"'s" : "this"} financial data and remove their profile. Are you sure?`)) return;
+      if(!confirm(`This will permanently erase ${identity? identity.name+"'s" : "this"} financial data and delete their account. Are you sure?`)) return;
       if(!confirm("This cannot be undone. Reset now?")) return;
       const id = getActiveProfileId();
       if(id){
@@ -2197,20 +2227,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
       document.getElementById("idName").value = "";
       document.getElementById("idEmail").value = "";
       routeAfterGate();
-      showToast("Profile reset. Set up a new profile to continue.");
-    },
-    selectProfile(id){
-      setActiveProfileId(id);
-      bootApp();
-    },
-    deleteProfile(id){
-      const p = loadProfiles().find(x=>x.id===id);
-      if(!p) return;
-      if(!confirm(`Remove ${p.name}'s profile and all of their data from this device? This cannot be undone.`)) return;
-      localStorage.removeItem("pf_data_"+id);
-      saveProfiles(loadProfiles().filter(x=>x.id!==id));
-      if(getActiveProfileId()===id) clearActiveProfileId();
-      renderProfileList();
+      showToast("Account reset. Create a new account to continue.");
     },
     switchUser(){
       clearActiveProfileId();
