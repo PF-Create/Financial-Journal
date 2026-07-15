@@ -202,6 +202,8 @@ main{flex:1;padding:22px 26px 60px;}
 
 .dash-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start;}
 @media(max-width:980px){.dash-grid{grid-template-columns:1fr;}}
+.dash-grid-13{display:grid;grid-template-columns:1fr 3fr;gap:18px;align-items:start;}
+@media(max-width:980px){.dash-grid-13{grid-template-columns:1fr;}}
 
 /* prominent dashboard score banner */
 .score-banner{
@@ -363,6 +365,16 @@ tr:last-child td{border-bottom:none;}
 
 footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-align:center;font-size:11.5px;color:var(--ink-faint);line-height:1.6;}
 
+.profile-list{display:flex;flex-direction:column;gap:8px;margin:14px 0;}
+.profile-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:background .15s ease,border-color .15s ease;background:var(--card);}
+.profile-row:hover{background:var(--bg);border-color:var(--green);}
+.profile-row .pr-avatar{width:38px;height:38px;border-radius:50%;background:var(--green-soft);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
+.profile-row .pr-info{min-width:0;flex:1;}
+.profile-row .pr-name{font-weight:700;font-size:13.5px;color:var(--ink);}
+.profile-row .pr-email{font-size:11.5px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.profile-row .pr-delete{font-size:11px;color:var(--coral);font-weight:600;padding:5px 9px;border-radius:7px;flex-shrink:0;}
+.profile-row .pr-delete:hover{background:var(--coral-soft);}
+
 #toast{
   position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
   background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:99px;font-size:13.5px;
@@ -398,17 +410,29 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   </div>
 </div>
 
+<!-- ================= PROFILE PICKER (multi-user) ================= -->
+<div id="profileScreen" class="id-wrap hidden">
+  <div class="id-card" style="max-width:460px;">
+    <div class="id-logo"><div class="mark">👥</div><b>Pocket Friendly</b></div>
+    <p class="lead">Who's using this tracker?</p>
+    <div id="profileList" class="profile-list"></div>
+    <button class="btn btn-outline btn-block" id="profileAddBtn" style="margin-top:6px;">+ Add a new user</button>
+    <p class="id-note">🔐 Each user's data is kept separate on this device and is only visible after picking their profile.</p>
+  </div>
+</div>
+
 <!-- ================= IDENTITY / FIRST-RUN SCREEN ================= -->
 <div id="identityScreen" class="id-wrap hidden">
   <div class="id-card">
     <div class="id-logo"><div class="mark">🌱</div><b>Pocket Friendly</b></div>
-    <p class="lead">Set up your personal copy of Pocket Friendly. Your name and email identify this tracker — once saved, ownership locks and can only be changed with a full Reset.</p>
+    <p class="lead" id="identityLead">Set up your personal copy of Pocket Friendly. Your name and email identify this profile.</p>
     <div id="idAlertSlot"></div>
     <div class="field"><label for="idName">Full name</label><input id="idName" type="text" placeholder="e.g. Aishwarya Khobragade"></div>
     <div class="field"><label for="idEmail">Email</label><input id="idEmail" type="email" placeholder="e.g. you@example.com"></div>
-    <button class="btn btn-primary btn-block" id="idSaveBtn">🔒 Save &amp; Lock My Profile</button>
+    <button class="btn btn-primary btn-block" id="idSaveBtn">👤 Create My Profile</button>
     <div class="divider-or">or</div>
     <button class="btn btn-outline btn-block" id="idDemoBtn">✨ Try the demo (sample data included)</button>
+    <button class="btn btn-outline btn-block hidden" id="idBackBtn" style="margin-top:8px;">← Back to profiles</button>
     <p class="id-note">🔐 This tracker is for personal use only. Nothing is uploaded — everything lives in this browser via localStorage. Clearing browser data will erase it.</p>
   </div>
 </div>
@@ -447,6 +471,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
         <button class="chip-btn" id="refreshBtn">🔄 Refresh</button>
         <button class="chip-btn save" id="saveBtn">💾 Save</button>
         <button class="chip-btn" id="themeToggle">☀️ Light Mode</button>
+        <button class="chip-btn" onclick="PF.logout()" title="Log out of this profile">🔒 Logout</button>
         <div class="user-mini">
           <div class="avatar-badge" id="tbAvatar" style="width:32px;height:32px;font-size:13px;">A</div>
           <div>
@@ -519,9 +544,10 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     "POCKETFRIENDLY",
     "WELCOME2026"
   ];
-  function isGateUnlocked(){ return localStorage.getItem("pf_gate_unlocked") === "1"; }
-  function unlockGate(){ localStorage.setItem("pf_gate_unlocked","1"); }
+  function isGateUnlocked(){ return sessionStorage.getItem("pf_gate_unlocked") === "1"; }
+  function unlockGate(){ sessionStorage.setItem("pf_gate_unlocked","1"); }
   function showGateScreen(alertMsg){
+    document.getElementById("profileScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.add("hidden");
     document.getElementById("appShell").classList.add("hidden");
     document.getElementById("accessGateScreen").classList.remove("hidden");
@@ -529,8 +555,19 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   }
   function passGateAndBoot(){
     document.getElementById("accessGateScreen").classList.add("hidden");
-    const existingIdentity = loadIdentity();
-    if(existingIdentity){ bootApp(); } else { showIdentityScreen(null); }
+    routeAfterGate();
+  }
+  function routeAfterGate(){
+    migrateLegacyProfileIfNeeded();
+    const activeId = getActiveProfileId();
+    const profiles = loadProfiles();
+    if(activeId && profiles.some(p=>p.id===activeId)){
+      bootApp();
+    } else if(profiles.length){
+      showProfileScreen();
+    } else {
+      showIdentityScreen(null);
+    }
   }
   document.getElementById("gateSubmitBtn").addEventListener("click", attemptGateUnlock);
   document.getElementById("gateCode").addEventListener("keydown", e=>{ if(e.key==="Enter") attemptGateUnlock(); });
@@ -566,27 +603,67 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     };
   }
 
-  /* ---------------- persistence ---------------- */
+  /* ---------------- persistence (multi-user profiles) ---------------- */
+  function getActiveProfileId(){ return sessionStorage.getItem("pf_session_profile"); }
+  function setActiveProfileId(id){ sessionStorage.setItem("pf_session_profile", id); }
+  function clearActiveProfileId(){ sessionStorage.removeItem("pf_session_profile"); }
+
+  function loadProfiles(){
+    const raw = localStorage.getItem("pf_profiles");
+    return raw ? JSON.parse(raw) : [];
+  }
+  function saveProfiles(list){ localStorage.setItem("pf_profiles", JSON.stringify(list)); }
+
+  // one-time migration: older versions of this app stored a single locked identity
+  // under pf_identity/pf_data. Fold that into the new multi-profile system so
+  // existing users don't lose their data.
+  function migrateLegacyProfileIfNeeded(){
+    if(localStorage.getItem("pf_profiles")) return;
+    const legacyIdentityRaw = localStorage.getItem("pf_identity");
+    if(legacyIdentityRaw){
+      const idnt = JSON.parse(legacyIdentityRaw);
+      const id = "legacy";
+      const legacyData = localStorage.getItem("pf_data");
+      if(legacyData) localStorage.setItem("pf_data_"+id, legacyData);
+      saveProfiles([{id, name:idnt.name, email:idnt.email}]);
+      localStorage.removeItem("pf_identity");
+      localStorage.removeItem("pf_data");
+    } else {
+      saveProfiles([]);
+    }
+  }
+
   function saveData(silent){
-    localStorage.setItem("pf_data", JSON.stringify(data));
+    const id = getActiveProfileId();
+    if(!id) return;
+    localStorage.setItem("pf_data_"+id, JSON.stringify(data));
     if(!silent) showToast("Data saved successfully ✅");
     flashSaveStatus();
   }
   function loadData(){
-    const raw = localStorage.getItem("pf_data");
+    const id = getActiveProfileId();
+    const raw = id ? localStorage.getItem("pf_data_"+id) : null;
     if(!raw) return freshData();
     const parsed = JSON.parse(raw);
     const defaults = freshData();
     Object.keys(defaults).forEach(k=>{ if(!(k in parsed)) parsed[k]=defaults[k]; });
     return parsed;
   }
-  function saveIdentity(name, email){
-    identity = { name, email, lockedAt: new Date().toISOString() };
-    localStorage.setItem("pf_identity", JSON.stringify(identity));
+  // creates a brand-new profile (does not overwrite any existing one) and makes it active
+  function createProfile(name, email){
+    const id = uid();
+    const profiles = loadProfiles();
+    profiles.push({id, name, email});
+    saveProfiles(profiles);
+    setActiveProfileId(id);
+    identity = {name, email};
+    return id;
   }
   function loadIdentity(){
-    const raw = localStorage.getItem("pf_identity");
-    return raw ? JSON.parse(raw) : null;
+    const id = getActiveProfileId();
+    if(!id) return null;
+    const p = loadProfiles().find(x=>x.id===id);
+    return p ? {name:p.name, email:p.email} : null;
   }
 
   function flashSaveStatus(){
@@ -638,34 +715,54 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   function addMonths(n){ const d=new Date(); d.setMonth(d.getMonth()+n); return d.toISOString().slice(0,10); }
   function addYears(n){ const d=new Date(); d.setFullYear(d.getFullYear()+n); return d.toISOString().slice(0,10); }
 
-  /* ================= IDENTITY SCREEN ================= */
+  /* ================= PROFILE PICKER & IDENTITY SCREEN (multi-user) ================= */
+  function showProfileScreen(){
+    document.getElementById("accessGateScreen").classList.add("hidden");
+    document.getElementById("identityScreen").classList.add("hidden");
+    document.getElementById("appShell").classList.add("hidden");
+    document.getElementById("profileScreen").classList.remove("hidden");
+    renderProfileList();
+  }
+  function renderProfileList(){
+    const profiles = loadProfiles();
+    const wrap = document.getElementById("profileList");
+    const backBtn = document.getElementById("idBackBtn");
+    if(backBtn) backBtn.classList.toggle("hidden", profiles.length===0);
+    if(!profiles.length){
+      wrap.innerHTML = `<div class="empty" style="padding:10px 0;">No profiles yet — add one to get started.</div>`;
+      return;
+    }
+    wrap.innerHTML = profiles.map(p=>`
+      <div class="profile-row" onclick="PF.selectProfile('${p.id}')">
+        <div class="pr-avatar">${escapeHtml((p.name||"U").trim().charAt(0).toUpperCase())}</div>
+        <div class="pr-info"><div class="pr-name">${escapeHtml(p.name)}</div><div class="pr-email">${escapeHtml(p.email)}</div></div>
+        <div class="pr-delete" onclick="event.stopPropagation(); PF.deleteProfile('${p.id}')">Remove</div>
+      </div>`).join("");
+  }
   function showIdentityScreen(alertMsg){
+    document.getElementById("profileScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.remove("hidden");
     document.getElementById("appShell").classList.add("hidden");
     document.getElementById("idAlertSlot").innerHTML = alertMsg ? `<div class="id-alert">🔒 ${alertMsg}</div>` : "";
+    const lead = document.getElementById("identityLead");
+    if(lead) lead.textContent = loadProfiles().length ? "Add another user to this device. Each person gets their own private data." : "Set up your personal copy of Pocket Friendly. Your name and email identify this profile.";
   }
+  document.getElementById("idBackBtn").addEventListener("click", showProfileScreen);
+  document.getElementById("profileAddBtn").addEventListener("click", ()=>showIdentityScreen(null));
 
   document.getElementById("idSaveBtn").addEventListener("click", ()=>{
-    if(loadIdentity()){
-      showIdentityScreen("This tracker is already assigned to a user. Reset required to change ownership.");
-      return;
-    }
     const name = document.getElementById("idName").value.trim();
     const email = document.getElementById("idEmail").value.trim();
     if(!name || !email){ showToast("Please enter both name and email"); return; }
     if(!/^\S+@\S+\.\S+$/.test(email)){ showToast("Please enter a valid email address"); return; }
-    saveIdentity(name, email);
+    createProfile(name, email);
     data = freshData();
     saveData(true);
     bootApp();
   });
 
   document.getElementById("idDemoBtn").addEventListener("click", ()=>{
-    if(loadIdentity()){
-      showIdentityScreen("This tracker is already assigned to a user. Reset required to change ownership.");
-      return;
-    }
-    saveIdentity("Aishwarya Khobragade", "khobragadeaishwarya08@gmail.com");
+    createProfile("Aishwarya Khobragade", "khobragadeaishwarya08@gmail.com");
     data = seedDemoData();
     saveData(true);
     bootApp();
@@ -676,6 +773,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   function bootApp(){
     identity = loadIdentity();
     data = loadData();
+    document.getElementById("profileScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.add("hidden");
     document.getElementById("appShell").classList.remove("hidden");
     document.documentElement.setAttribute("data-theme", data.theme || "light");
@@ -963,7 +1061,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
         </div>
       </div>
 
-      <div class="dash-grid" style="margin-top:16px;">
+      <div class="dash-grid-13" style="margin-top:16px;">
         <div>${trendsListCard()}</div>
         <div><div class="card"><div class="card-head"><h3>Goals Tracking</h3></div>${renderGoalsOverview()}</div></div>
       </div>
@@ -1031,39 +1129,79 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
 
   function investmentChangeCard(){
     const cur = totalCurrentValue();
+    const invested = totalInvestedAmount();
+    const gain = cur - invested;
     const prev = prevSnapshot();
     const pct = pctChange(cur, prev?prev.investments:null);
+    const slices = gain>=0
+      ? [{value:invested,color:"var(--purple)"},{value:gain,color:"var(--green)"}]
+      : [{value:cur,color:"var(--purple)"},{value:Math.abs(gain),color:"var(--coral)"}];
     return `<div class="card">
-      <div class="st-sub" style="font-weight:700;color:var(--ink);font-size:13px;">Investments</div>
-      <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><div class="st-value" style="font-size:19px;">${fmt(cur)}</div>${trendChip(pct)}</div>
-      <div class="st-sub" style="margin-top:6px;">Current portfolio value vs last month</div>
+      <div class="card-head"><h3>📈 Investments</h3>${trendChip(pct)}</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        ${data.investments.length ? donut(slices,72) : `<div style="width:72px;height:72px;border-radius:50%;background:var(--line);flex-shrink:0;"></div>`}
+        <div class="legend" style="flex:1;">
+          <div class="lg-row"><span class="dot" style="background:var(--purple);"></span><span class="lg-name">Invested</span><span class="lg-pct num">${fmt(invested)}</span></div>
+          <div class="lg-row"><span class="dot" style="background:${gain>=0?'var(--green)':'var(--coral)'};"></span><span class="lg-name">${gain>=0?'Gain':'Loss'}</span><span class="lg-pct num" style="color:${gain>=0?'var(--green-dark)':'var(--coral)'};">${fmt(Math.abs(gain))}</span></div>
+          <div class="lg-row"><span class="lg-name" style="font-weight:700;">Current Value</span><span class="lg-pct num" style="font-weight:700;">${fmt(cur)}</span></div>
+        </div>
+      </div>
     </div>`;
   }
   function debtChangeCard(){
     const cur = totalDebt();
+    const origTotal = data.debts.reduce((s,d)=>s+Number(d.originalAmount||d.amount||0),0);
+    const paid = Math.max(0, origTotal-cur);
     const prev = prevSnapshot();
     const pct = pctChange(cur, prev?prev.debt:null);
+    const slices = [{value:paid,color:"var(--green)"},{value:cur,color:"var(--coral)"}];
     return `<div class="card">
-      <div class="st-sub" style="font-weight:700;color:var(--ink);font-size:13px;">Debt</div>
-      <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><div class="st-value" style="font-size:19px;">${fmt(cur)}</div>${trendChip(pct,true)}</div>
-      <div class="st-sub" style="margin-top:6px;">Outstanding balance vs last month</div>
+      <div class="card-head"><h3>💳 Debt</h3>${trendChip(pct,true)}</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        ${data.debts.length ? donut(slices,72) : `<div style="width:72px;height:72px;border-radius:50%;background:var(--line);flex-shrink:0;"></div>`}
+        <div class="legend" style="flex:1;">
+          <div class="lg-row"><span class="dot" style="background:var(--green);"></span><span class="lg-name">Paid Off</span><span class="lg-pct num">${fmt(paid)}</span></div>
+          <div class="lg-row"><span class="dot" style="background:var(--coral);"></span><span class="lg-name">Pending</span><span class="lg-pct num">${fmt(cur)}</span></div>
+          <div class="lg-row"><span class="lg-name" style="font-weight:700;">Original</span><span class="lg-pct num" style="font-weight:700;">${fmt(origTotal)}</span></div>
+        </div>
+      </div>
     </div>`;
   }
 
   function trendsListCard(){
     const inc = totalIncome()||1;
-    const rows = [
-      ["Savings Ratio", Math.round((netSavings()/inc)*100), "var(--green)"],
-      ["Investment Ratio", Math.round((totalCurrentValue()/inc)*100), "var(--purple)"],
-      ["Expense Ratio", Math.round((totalExpenses()/inc)*100), "var(--coral)"],
-    ];
+    const prev = prevSnapshot();
+    const prevInc = prev ? (prev.income||1) : null;
+    const savingsRatio = Math.round((netSavings()/inc)*100);
+    const investRatio = Math.round((totalCurrentValue()/inc)*100);
+    const expenseRatio = Math.round((totalExpenses()/inc)*100);
+    const prevSavingsRatio = prev ? Math.round(((prev.income-prev.expenses)/prevInc)*100) : null;
+    const prevInvestRatio = prev ? Math.round((prev.investments/prevInc)*100) : null;
+    const prevExpenseRatio = prev ? Math.round((prev.expenses/prevInc)*100) : null;
+
+    function row(label, val, prevVal, goodWhenUp){
+      let comment, cls;
+      if(prevVal==null){
+        comment = "No last month data yet"; cls = "flat";
+      } else {
+        const delta = val - prevVal;
+        const improved = goodWhenUp ? delta>0 : delta<0;
+        if(delta===0){ comment = "Unchanged from last month"; cls = "flat"; }
+        else { comment = `${improved?"Improved":"Slipped"} ${Math.abs(delta)} pts vs last month`; cls = improved?"up":"down"; }
+      }
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);">
+        <div><div style="font-size:12.5px;color:var(--ink-soft);font-weight:600;">${label}</div><div style="font-size:11px;color:var(--ink-faint);margin-top:2px;">${comment}</div></div>
+        <div style="text-align:right;">
+          <div class="num" style="font-weight:700;font-size:14px;color:var(--ink);">${val}%</div>
+          <span class="trend ${cls}" style="font-size:10.5px;">${prevVal!=null?prevVal+"% last mo.":""}</span>
+        </div>
+      </div>`;
+    }
     return `<div class="card">
       <div class="card-head"><h3>Trends</h3></div>
-      ${rows.map(([label,val,color])=>`
-        <div style="margin-bottom:12px;">
-          <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;"><span>${label}</span><b class="num" style="color:var(--ink);">${val}%</b></div>
-          <div class="progress" style="margin-top:0;"><div class="progress-fill" style="width:${clamp(val,0,100)}%;background:${color};"></div></div>
-        </div>`).join("")}
+      ${row("Savings Ratio", savingsRatio, prevSavingsRatio, true)}
+      ${row("Investment Ratio", investRatio, prevInvestRatio, true)}
+      ${row("Expense Ratio", expenseRatio, prevExpenseRatio, false)}
     </div>`;
   }
 
@@ -1558,9 +1696,10 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   }
   function renderDebtTable(){
     if(!data.debts.length) return `<div class="empty">No debts logged. If you're debt-free, that's worth celebrating!</div>`;
-    return `<table><thead><tr><th>Name</th><th>Outstanding</th><th>Interest</th><th>Monthly EMI</th><th>Next EMI date</th><th></th></tr></thead><tbody>
+    return `<table><thead><tr><th>Name</th><th>Original Amount</th><th>Outstanding</th><th>Interest</th><th>Monthly EMI</th><th>Next EMI date</th><th></th></tr></thead><tbody>
       ${data.debts.map(d=>`<tr>
         <td>${escapeHtml(d.name)} ${Number(d.interestRate)>15?'<span class="pill want">high interest</span>':''}</td>
+        <td class="num">${fmt(d.originalAmount||d.amount)}</td>
         <td class="num">${fmt(d.amount)}</td><td class="num">${d.interestRate}%</td><td class="num">${fmt(d.minPayment)}</td>
         <td class="num">${d.emiDate||"—"}</td>
         <td class="row-actions"><button class="mini-btn" onclick="PF.editDebt('${d.id}')">Edit</button><button class="mini-btn del" onclick="PF.deleteItem('debts','${d.id}')">Delete</button></td>
@@ -1600,7 +1739,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
       <div class="card" style="margin-bottom:12px;">
         <div class="form-grid">
           <div class="field"><label>Type</label>
-            <select id="rp_type" onchange="PF.prefillRecurring()">
+            <select id="rp_type" onchange="PF.onRecurringTypeChange()">
               <option value="SIP">SIP</option>
               <option value="EMI">EMI</option>
               <option value="Premium">Insurance Premium</option>
@@ -1817,13 +1956,16 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
       <div class="page-head"><div><h1>⚙️ Settings</h1><div class="ph-sub">Your identity, theme, and data controls.</div></div>${pageControls()}</div>
 
       <div class="card" style="margin-bottom:14px;">
-        <div class="card-head"><h3>👤 Identity</h3><span class="badge-pill good">🔒 Locked</span></div>
+        <div class="card-head"><h3>👤 Identity</h3><span class="badge-pill good">Active profile</span></div>
         <div class="form-grid">
           <div class="field"><label>Full name</label><input value="${escapeHtml(identity.name)}" readonly></div>
           <div class="field"><label>Email</label><input value="${escapeHtml(identity.email)}" readonly></div>
         </div>
-        <div class="st-sub" style="margin-top:6px;">👤 ${escapeHtml(identity.name)} &nbsp;·&nbsp; 📧 ${escapeHtml(identity.email)} &nbsp;·&nbsp; 🔒 Personal Use Copy</div>
-        <div class="st-sub" style="margin-top:8px;">Identity is locked to prevent accidental sharing between people. Use Reset below to hand this tracker to someone else.</div>
+        <div class="st-sub" style="margin-top:6px;">This device has ${loadProfiles().length} profile${loadProfiles().length===1?'':'s'} set up. Each profile's data is kept separate.</div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="PF.switchUser()">🔁 Switch User</button>
+          <button class="btn btn-outline" onclick="PF.logout()">🔒 Logout</button>
+        </div>
       </div>
 
       <div class="card" style="margin-bottom:14px;">
@@ -1833,8 +1975,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
 
       <div class="card">
         <div class="card-head"><h3>♻️ Danger zone</h3></div>
-        <p class="st-sub">Resetting permanently clears all financial data <b>and</b> the locked identity above. This cannot be undone.</p>
-        <button class="btn btn-danger" onclick="PF.resetAll()">♻️ Reset Tracker (clears data + identity)</button>
+        <p class="st-sub">Resetting permanently clears this profile's financial data and removes it from this device. Other profiles are not affected. This cannot be undone.</p>
+        <button class="btn btn-danger" onclick="PF.resetAll()">♻️ Reset This Profile</button>
       </div>
     `;
   }
@@ -1984,8 +2126,13 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
       finishEdit(null);
     },
 
-    prefillRecurring(){
+    onRecurringTypeChange(){
       populateRecurringLinkOptions();
+      // clear previously auto-filled values since the linked source has changed
+      document.getElementById("rp_name").value = "";
+      document.getElementById("rp_amount").value = "";
+    },
+    prefillRecurring(){
       const type = document.getElementById("rp_type").value;
       const linkId = document.getElementById("rp_link").value;
       const freqSel = document.getElementById("rp_freq");
@@ -2037,16 +2184,47 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     },
 
     resetAll(){
-      if(!confirm("This will permanently erase ALL data and unlock ownership of this tracker. Are you sure?")) return;
-      if(!confirm("This cannot be undone. Reset everything now?")) return;
-      localStorage.removeItem("pf_identity");
-      localStorage.removeItem("pf_data");
+      if(!confirm(`This will permanently erase ${identity? identity.name+"'s" : "this"} financial data and remove their profile. Are you sure?`)) return;
+      if(!confirm("This cannot be undone. Reset now?")) return;
+      const id = getActiveProfileId();
+      if(id){
+        localStorage.removeItem("pf_data_"+id);
+        saveProfiles(loadProfiles().filter(p=>p.id!==id));
+      }
+      clearActiveProfileId();
       identity = null; data = null;
       document.getElementById("appShell").classList.add("hidden");
       document.getElementById("idName").value = "";
       document.getElementById("idEmail").value = "";
-      showIdentityScreen(null);
-      showToast("Tracker reset. Set up a new profile to continue.");
+      routeAfterGate();
+      showToast("Profile reset. Set up a new profile to continue.");
+    },
+    selectProfile(id){
+      setActiveProfileId(id);
+      bootApp();
+    },
+    deleteProfile(id){
+      const p = loadProfiles().find(x=>x.id===id);
+      if(!p) return;
+      if(!confirm(`Remove ${p.name}'s profile and all of their data from this device? This cannot be undone.`)) return;
+      localStorage.removeItem("pf_data_"+id);
+      saveProfiles(loadProfiles().filter(x=>x.id!==id));
+      if(getActiveProfileId()===id) clearActiveProfileId();
+      renderProfileList();
+    },
+    switchUser(){
+      clearActiveProfileId();
+      identity = null; data = null;
+      document.getElementById("appShell").classList.add("hidden");
+      routeAfterGate();
+    },
+    logout(){
+      clearActiveProfileId();
+      sessionStorage.removeItem("pf_gate_unlocked");
+      identity = null; data = null;
+      document.getElementById("appShell").classList.add("hidden");
+      showGateScreen(null);
+      showToast("Logged out. Enter the access code to continue.");
     }
   };
   window.PF = PF;
@@ -2062,12 +2240,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
 
   /* ================= BOOT ================= */
   if(isGateUnlocked()){
-    const existingIdentity = loadIdentity();
-    if(existingIdentity){
-      bootApp();
-    } else {
-      showIdentityScreen(null);
-    }
+    routeAfterGate();
   } else {
     showGateScreen(null);
   }
