@@ -109,6 +109,8 @@ input[readonly]{background:var(--line);color:var(--ink-soft);}
 .btn-ghost{background:transparent;color:var(--ink-soft);}
 .btn-block{width:100%;justify-content:center;}
 .divider-or{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--ink-faint);font-size:12px;}
+.btn-linklike{display:block;width:100%;text-align:center;background:none;border:none;color:var(--green-dark);font-size:12.5px;font-weight:600;padding:10px 0 2px;cursor:pointer;}
+.btn-linklike:hover{text-decoration:underline;}
 .divider-or::before,.divider-or::after{content:"";flex:1;height:1px;background:var(--line);}
 .id-note{font-size:11.5px;color:var(--ink-faint);margin-top:16px;line-height:1.5;}
 .id-alert{background:var(--coral-soft);color:var(--coral);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px;}
@@ -187,7 +189,13 @@ main{flex:1;padding:22px 26px 60px;}
 .page-head .ph-sub{font-size:13px;color:var(--ink-soft);margin-top:2px;}
 .page-actions{display:flex;gap:8px;flex-wrap:wrap;}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;transition:box-shadow .2s ease, transform .2s ease;}
+.card:hover{box-shadow:0 6px 18px rgba(0,0,0,.08);transform:translateY(-1px);}
+.dist-bar-track{height:9px;border-radius:99px;background:var(--line);overflow:hidden;}
+.dist-bar-fill{height:100%;border-radius:99px;transition:width .6s cubic-bezier(.22,1,.36,1);}
+.insights-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px;}
+.insights-list li{font-size:12.5px;color:var(--ink-soft);line-height:1.5;padding-left:16px;position:relative;}
+.insights-list li::before{content:"•";position:absolute;left:0;color:var(--green);font-weight:800;}
 .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .card-head h3{font-size:14.5px;display:flex;align-items:center;gap:7px;}
 .card-head .ch-link{font-size:12px;color:var(--green-dark);font-weight:700;}
@@ -266,6 +274,7 @@ main{flex:1;padding:22px 26px 60px;}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
 .form-actions{display:flex;gap:8px;margin-top:6px;}
 table{width:100%;border-collapse:collapse;font-size:13.5px;}
+table tfoot td{font-weight:800;border-top:2px solid var(--line);background:var(--bg);padding-top:10px;color:var(--ink);}
 th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-faint);padding:8px 10px;border-bottom:1px solid var(--line);}
 td{padding:10px;border-bottom:1px dashed var(--line);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
@@ -389,13 +398,14 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
 <div id="accessGateScreen" class="id-wrap hidden">
   <div class="id-card">
     <div class="id-logo"><div class="mark">🔐</div><b>Pocket Friendly</b></div>
-    <p class="lead">This tracker is invite-only. Enter your access code to continue.</p>
+    <p class="lead">Creating a new account requires an invite code. Enter it to continue.</p>
     <div id="gateAlertSlot"></div>
     <div class="field">
       <label for="gateCode">Access code</label>
       <input id="gateCode" type="text" placeholder="Enter your access code" autocomplete="off">
     </div>
-    <button class="btn btn-primary btn-block" id="gateSubmitBtn">🔓 Unlock</button>
+    <button class="btn btn-primary btn-block" id="gateSubmitBtn">🔓 Continue</button>
+    <button class="btn btn-outline btn-block" id="gateBackBtn" style="margin-top:8px;">← Back to login</button>
     <p class="id-note">🔐 Your access code stays on this device only — nothing is uploaded. Don't have a code? Contact whoever shared this tracker with you.</p>
   </div>
 </div>
@@ -409,10 +419,27 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     <div class="field"><label for="loginEmail">Email</label><input id="loginEmail" type="email" placeholder="e.g. you@example.com" autocomplete="username"></div>
     <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" placeholder="Your password" autocomplete="current-password"></div>
     <button class="btn btn-primary btn-block" id="loginSubmitBtn">🔓 Log In</button>
+    <button class="btn-linklike" id="forgotPasswordLink">Forgot password?</button>
     <div class="divider-or">or</div>
     <button class="btn btn-outline btn-block" id="loginSignupBtn">Create an account</button>
     <button class="btn btn-outline btn-block" id="idDemoBtn" style="margin-top:8px;">✨ Try the demo (sample data included)</button>
     <p class="id-note">🔐 Your data is private — only visible after logging in with your own email and password. No one else can see or select your account.</p>
+  </div>
+</div>
+
+<!-- ================= FORGOT PASSWORD SCREEN ================= -->
+<div id="forgotScreen" class="id-wrap hidden">
+  <div class="id-card">
+    <div class="id-logo"><div class="mark">🔑</div><b>Pocket Friendly</b></div>
+    <p class="lead">Reset your password by answering your security question.</p>
+    <div id="forgotAlertSlot"></div>
+    <div class="field"><label for="forgotEmail">Email</label><input id="forgotEmail" type="email" placeholder="e.g. you@example.com" autocomplete="username"></div>
+    <div class="field"><label for="forgotAnswer">Security answer — What city were you born in?</label><input id="forgotAnswer" type="text" placeholder="Your answer"></div>
+    <div class="field"><label for="forgotNewPassword">New password</label><input id="forgotNewPassword" type="password" placeholder="Choose a new password" autocomplete="new-password"></div>
+    <div class="field"><label for="forgotNewPasswordConfirm">Confirm new password</label><input id="forgotNewPasswordConfirm" type="password" placeholder="Re-enter new password" autocomplete="new-password"></div>
+    <button class="btn btn-primary btn-block" id="forgotSubmitBtn">Reset Password</button>
+    <button class="btn btn-outline btn-block" id="forgotBackBtn" style="margin-top:8px;">← Back to login</button>
+    <p class="id-note">🔐 If the email and answer don't match our records, nothing is changed — for your account's privacy we won't confirm which one was wrong.</p>
   </div>
 </div>
 
@@ -426,11 +453,13 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     <div class="field"><label for="idEmail">Email</label><input id="idEmail" type="email" placeholder="e.g. you@example.com" autocomplete="username"></div>
     <div class="field"><label for="idPassword">Password</label><input id="idPassword" type="password" placeholder="Choose a password" autocomplete="new-password"></div>
     <div class="field"><label for="idPasswordConfirm">Confirm password</label><input id="idPasswordConfirm" type="password" placeholder="Re-enter password" autocomplete="new-password"></div>
+    <div class="field"><label for="idSecurityAnswer">Security answer — What city were you born in?</label><input id="idSecurityAnswer" type="text" placeholder="Used only if you forget your password"></div>
     <button class="btn btn-primary btn-block" id="idSaveBtn">👤 Create Account</button>
     <button class="btn btn-outline btn-block" id="idBackBtn" style="margin-top:8px;">← Back to login</button>
     <p class="id-note">🔐 This tracker is for personal use only. Nothing is uploaded — everything lives in this browser via localStorage. Clearing browser data will erase it.</p>
   </div>
 </div>
+
 
 <!-- ================= APP SHELL ================= -->
 <div id="appShell" class="hidden">
@@ -539,20 +568,15 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     "POCKETFRIENDLY",
     "WELCOME2026"
   ];
-  function isGateUnlocked(){ return sessionStorage.getItem("pf_gate_unlocked") === "1"; }
-  function unlockGate(){ sessionStorage.setItem("pf_gate_unlocked","1"); }
   function showGateScreen(alertMsg){
     document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("forgotScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.add("hidden");
     document.getElementById("appShell").classList.add("hidden");
     document.getElementById("accessGateScreen").classList.remove("hidden");
     document.getElementById("gateAlertSlot").innerHTML = alertMsg ? `<div class="id-alert">🔒 ${escapeHtml(alertMsg)}</div>` : "";
   }
-  function passGateAndBoot(){
-    document.getElementById("accessGateScreen").classList.add("hidden");
-    routeAfterGate();
-  }
-  function routeAfterGate(){
+  function initialRoute(){
     migrateLegacyProfileIfNeeded();
     const activeId = getActiveProfileId();
     const profiles = loadProfiles();
@@ -564,12 +588,13 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   }
   document.getElementById("gateSubmitBtn").addEventListener("click", attemptGateUnlock);
   document.getElementById("gateCode").addEventListener("keydown", e=>{ if(e.key==="Enter") attemptGateUnlock(); });
+  document.getElementById("gateBackBtn").addEventListener("click", ()=>showLoginScreen(null));
   function attemptGateUnlock(){
     const entered = document.getElementById("gateCode").value.trim().toUpperCase();
     if(!entered){ showToastEarly("Please enter an access code"); return; }
     if(VALID_ACCESS_CODES.map(c=>c.toUpperCase()).includes(entered)){
-      unlockGate();
-      passGateAndBoot();
+      document.getElementById("accessGateScreen").classList.add("hidden");
+      showIdentityScreen(null);
     } else {
       showGateScreen("That code isn't valid. Please check and try again.");
     }
@@ -651,12 +676,14 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
   }
   // creates a brand-new account (does not overwrite any existing one) and logs into it
-  async function createProfile(name, email, password){
+  async function createProfile(name, email, password, securityAnswer){
     const id = uid();
     const salt = genSalt();
     const passwordHash = await hashPassword(password, salt);
+    const secSalt = genSalt();
+    const securityAnswerHash = await hashPassword((securityAnswer||"").trim().toLowerCase(), secSalt);
     const profiles = loadProfiles();
-    profiles.push({id, name, email, salt, passwordHash});
+    profiles.push({id, name, email, salt, passwordHash, secSalt, securityAnswerHash});
     saveProfiles(profiles);
     setActiveProfileId(id);
     identity = {name, email};
@@ -680,6 +707,19 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     const hash = await hashPassword(password, p.salt);
     if(hash===p.passwordHash){ setActiveProfileId(p.id); return true; }
     return false;
+  }
+  // resets a password after verifying the security answer; never reveals which part was wrong
+  async function attemptPasswordReset(email, securityAnswer, newPassword){
+    const profiles = loadProfiles();
+    const p = profiles.find(x=>x.email.toLowerCase()===email.toLowerCase().trim());
+    if(!p || !p.securityAnswerHash) return false;
+    const answerHash = await hashPassword((securityAnswer||"").trim().toLowerCase(), p.secSalt);
+    if(answerHash!==p.securityAnswerHash) return false;
+    const salt = genSalt();
+    p.salt = salt;
+    p.passwordHash = await hashPassword(newPassword, salt);
+    saveProfiles(profiles.map(x=>x.id===p.id?p:x));
+    return true;
   }
   function loadIdentity(){
     const id = getActiveProfileId();
@@ -741,6 +781,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   function showLoginScreen(alertMsg){
     document.getElementById("accessGateScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.add("hidden");
+    document.getElementById("forgotScreen").classList.add("hidden");
     document.getElementById("appShell").classList.add("hidden");
     document.getElementById("loginScreen").classList.remove("hidden");
     document.getElementById("loginAlertSlot").innerHTML = alertMsg ? `<div class="id-alert">🔒 ${escapeHtml(alertMsg)}</div>` : "";
@@ -748,12 +789,22 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   }
   function showIdentityScreen(alertMsg){
     document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("forgotScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.remove("hidden");
     document.getElementById("appShell").classList.add("hidden");
     document.getElementById("idAlertSlot").innerHTML = alertMsg ? `<div class="id-alert">🔒 ${alertMsg}</div>` : "";
   }
+  function showForgotScreen(alertMsg){
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("identityScreen").classList.add("hidden");
+    document.getElementById("appShell").classList.add("hidden");
+    document.getElementById("forgotScreen").classList.remove("hidden");
+    document.getElementById("forgotAlertSlot").innerHTML = alertMsg ? `<div class="id-alert">🔒 ${escapeHtml(alertMsg)}</div>` : "";
+  }
   document.getElementById("idBackBtn").addEventListener("click", ()=>showLoginScreen(null));
-  document.getElementById("loginSignupBtn").addEventListener("click", ()=>showIdentityScreen(null));
+  document.getElementById("loginSignupBtn").addEventListener("click", ()=>showGateScreen(null));
+  document.getElementById("forgotPasswordLink").addEventListener("click", ()=>showForgotScreen(null));
+  document.getElementById("forgotBackBtn").addEventListener("click", ()=>showLoginScreen(null));
 
   document.getElementById("loginSubmitBtn").addEventListener("click", async ()=>{
     const email = document.getElementById("loginEmail").value.trim();
@@ -764,20 +815,38 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   });
   document.getElementById("loginPassword").addEventListener("keydown", e=>{ if(e.key==="Enter") document.getElementById("loginSubmitBtn").click(); });
 
+  document.getElementById("forgotSubmitBtn").addEventListener("click", async ()=>{
+    const email = document.getElementById("forgotEmail").value.trim();
+    const answer = document.getElementById("forgotAnswer").value;
+    const newPw = document.getElementById("forgotNewPassword").value;
+    const confirmPw = document.getElementById("forgotNewPasswordConfirm").value;
+    if(!email || !answer || !newPw){ showForgotScreen("Please fill in every field."); return; }
+    if(newPw.length<4){ showForgotScreen("New password must be at least 4 characters."); return; }
+    if(newPw!==confirmPw){ showForgotScreen("New passwords do not match."); return; }
+    const ok = await attemptPasswordReset(email, answer, newPw);
+    if(ok){
+      showLoginScreen("Password reset — log in with your new password.");
+    } else {
+      showForgotScreen("We couldn't verify those details. Please check your email and security answer.");
+    }
+  });
+
   document.getElementById("idSaveBtn").addEventListener("click", async ()=>{
     const name = document.getElementById("idName").value.trim();
     const email = document.getElementById("idEmail").value.trim();
     const password = document.getElementById("idPassword").value;
     const confirmPw = document.getElementById("idPasswordConfirm").value;
+    const securityAnswer = document.getElementById("idSecurityAnswer").value.trim();
     if(!name || !email){ showToast("Please enter both name and email"); return; }
     if(!/^\S+@\S+\.\S+$/.test(email)){ showToast("Please enter a valid email address"); return; }
     if(!password || password.length<4){ showToast("Please choose a password with at least 4 characters"); return; }
     if(password!==confirmPw){ showToast("Passwords do not match"); return; }
+    if(!securityAnswer){ showToast("Please answer the security question — it's used to reset your password later"); return; }
     if(loadProfiles().some(p=>p.email.toLowerCase()===email.toLowerCase())){
       showIdentityScreen("An account with this email already exists. Please log in instead.");
       return;
     }
-    await createProfile(name, email, password);
+    await createProfile(name, email, password, securityAnswer);
     data = freshData();
     saveData(true);
     bootApp();
@@ -792,7 +861,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
       showToast("Demo profile loaded");
       return;
     }
-    await createProfile("Aishwarya Khobragade", demoEmail, "demo-account");
+    await createProfile("Aishwarya Khobragade", demoEmail, "demo-account", "demo");
     data = seedDemoData();
     saveData(true);
     bootApp();
@@ -803,7 +872,9 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   function bootApp(){
     identity = loadIdentity();
     data = loadData();
+    document.getElementById("accessGateScreen").classList.add("hidden");
     document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("forgotScreen").classList.add("hidden");
     document.getElementById("identityScreen").classList.add("hidden");
     document.getElementById("appShell").classList.remove("hidden");
     document.documentElement.setAttribute("data-theme", data.theme || "light");
@@ -906,7 +977,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     const month = curMonth();
     const snap = {month, income: Math.round(totalIncome()), expenses: Math.round(totalExpenses()),
       savingsBalanceTotal: Math.round(totalSavingsBalance()+ (data.emergencyFund.current||0)),
-      investments: Math.round(totalCurrentValue()), debt: Math.round(totalDebt())};
+      investments: Math.round(totalCurrentValue()), investedAmount: Math.round(totalInvestedAmount()), debt: Math.round(totalDebt()),
+      score: computeScore().overall};
     const existing = data.history.find(h=>h.month===month);
     if(existing) Object.assign(existing, snap); else data.history.push(snap);
     data.history.sort((a,b)=> a.month.localeCompare(b.month));
@@ -972,6 +1044,24 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
       const wantPct = Math.round((totalWants()/exp)*100);
       if(wantPct>40) insights.push(`Wants make up ${wantPct}% of spending — trimming toward 30% would help.`);
     }
+    // insurance coverage check
+    const hasLife = data.insurance.some(p=>p.type==="life");
+    const hasHealth = data.insurance.some(p=>p.type==="health");
+    if(!hasLife && !hasHealth) insights.push("You don't have any insurance coverage yet — consider adding health or life insurance.");
+    else if(!hasLife || !hasHealth) insights.push(`Your insurance coverage is partial — you're missing ${!hasLife?"life":"health"} insurance.`);
+    // investment allocation check
+    const investedAmt = totalInvestedAmount();
+    if(investedAmt<=0){
+      insights.push("You haven't started investing yet — even small, regular investments compound over time.");
+    } else if(inc>0 && investedAmt>=inc*6){
+      insights.push("Good investment allocation — you're on track relative to your income. 📈");
+    }
+    // debt burden check
+    const emi = totalMonthlyEMI();
+    if(inc>0 && emi>0){
+      const emiPct = Math.round((emi/inc)*100);
+      if(emiPct>40) insights.push(`Your EMI payments take up ${emiPct}% of income — that's on the high side.`);
+    }
     return insights;
   }
   function getEncouragement(score){
@@ -1011,14 +1101,23 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   }
 
   /* ================= CHART HELPERS ================= */
-  function svgGauge(pct, size, strokeWidth, color){
+  function svgGauge(pct, size, strokeWidth, color, animateId){
     size = size||110; strokeWidth = strokeWidth||10; color = color||"var(--green)";
     const r = (size-strokeWidth)/2, c = 2*Math.PI*r, dash = clamp(pct,0,100)/100*c;
+    const idAttr = animateId ? ` id="${animateId}" data-dash="${dash}" data-c="${c}"` : "";
+    const initialDash = animateId ? `0 ${c}` : `${dash} ${c}`;
     return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
       <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${strokeWidth}"/>
-      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round"
-        stroke-dasharray="${dash} ${c}" transform="rotate(-90 ${size/2} ${size/2})" style="transition:stroke-dasharray .5s ease;"/>
+      <circle${idAttr} cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round"
+        stroke-dasharray="${initialDash}" transform="rotate(-90 ${size/2} ${size/2})" style="transition:stroke-dasharray .8s cubic-bezier(.22,1,.36,1);"/>
     </svg>`;
+  }
+  function animateGaugeIn(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    const dash = el.getAttribute("data-dash"), c = el.getAttribute("data-c");
+    const raf = typeof requestAnimationFrame==="function" ? requestAnimationFrame : (fn)=>setTimeout(fn,16);
+    raf(()=>{ raf(()=>{ el.setAttribute("stroke-dasharray", `${dash} ${c}`); }); });
   }
   function donut(slices, size){
     // slices: [{value, color}]
@@ -1077,6 +1176,11 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
         <button class="btn btn-outline" style="margin-top:10px;" onclick="PF.go('reports')">View Details</button>
       </div>
 
+      <div class="grid cols-2" style="margin-bottom:8px;">
+        ${financialDistributionCard()}
+        ${insightsCard()}
+      </div>
+
       <div class="section-toggle" id="dashDetailsToggle" onclick="PF.toggleDashSection('dashDetails')">
         <span>Financial Details <span class="stg-hint">Emergency fund, investments &amp; debt</span></span>
         <span class="stg-chev">▾</span>
@@ -1098,19 +1202,84 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     `;
     updateScoreCard(score);
     if(dashSectionState.dashDetails){ document.getElementById("dashDetails").classList.add("open"); document.getElementById("dashDetailsToggle").classList.add("open"); }
+    animateGaugeIn("scoreGaugeCircle");
+  }
+
+  // 📊 Financial Distribution — Savings / Investments / Insurance coverage, side by side.
+  // Purely additive: reads existing data, degrades gracefully to 0 when a category is empty.
+  function financialDistributionCard(){
+    const savings = totalSavingsBalance();
+    const investments = totalCurrentValue();
+    const insuranceCoverage = (data.insurance||[]).reduce((s,p)=>s+Number(p.coverage||0),0);
+    const parts = [
+      {label:"Savings", value:savings, color:"var(--green)"},
+      {label:"Investments", value:investments, color:"var(--purple)"},
+      {label:"Insurance Coverage", value:insuranceCoverage, color:"var(--coral)"},
+    ];
+    const total = parts.reduce((s,p)=>s+p.value,0) || 1;
+    return `<div class="card">
+      <div class="card-head"><h3>📊 Financial Distribution</h3></div>
+      ${parts.map(p=>{
+        const pct = Math.round((p.value/total)*100);
+        return `<div style="margin-bottom:11px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:4px;">
+            <span>${p.label}</span><b class="num" style="color:var(--ink);">${fmt(p.value)}</b>
+          </div>
+          <div class="dist-bar-track"><div class="dist-bar-fill" style="width:${pct}%;background:${p.color};"></div></div>
+        </div>`;
+      }).join("")}
+      <div class="st-sub" style="margin-top:2px;">Share of your combined savings, investments &amp; insurance coverage</div>
+    </div>`;
+  }
+
+  // 🧠 Insights — small rule-based card, additive to the existing Smart Comment card above.
+  function insightsCard(){
+    const lines = getInsights();
+    return `<div class="card">
+      <div class="card-head"><h3>🧠 Insights</h3></div>
+      ${lines.length ? `<ul class="insights-list">${lines.map(l=>`<li>${l}</li>`).join("")}</ul>` : `<div class="empty" style="padding:6px 0;">Add income and expenses to unlock insights.</div>`}
+    </div>`;
   }
 
   // dashboard UI state (collapsed by default so the page isn't overwhelming on load)
   const dashSectionState = { dashDetails:false };
 
+  function scoreImprovementTip(score){
+    const pillars = [
+      {key:"savingsScore", tip:"Save more of your income each month — aim for at least 20%."},
+      {key:"spendingScore", tip:"Trim discretionary \"want\" spending — keep it under 30% of total expenses."},
+      {key:"investmentScore", tip:"Invest more regularly — aim to build up to 6 months of income invested."},
+      {key:"insuranceScore", tip:"Get both life and health insurance to protect against financial shocks."},
+    ];
+    const weakest = pillars.reduce((a,b)=> score[b.key]<score[a.key] ? b : a);
+    return weakest.tip;
+  }
+  function scoreChangeReason(score){
+    const prev = prevSnapshot();
+    if(!prev || prev.score==null) return "This is your first tracked month — check back next month to see how your score is trending.";
+    const delta = score.overall - prev.score;
+    if(delta===0) return "Unchanged from last month.";
+    const dir = delta>0 ? "up" : "down";
+    const incDelta = totalIncome()-prev.income, expDelta = totalExpenses()-prev.expenses,
+      invDelta = totalCurrentValue()-prev.investments, debtDelta = totalDebt()-prev.debt;
+    const drivers = [];
+    if(Math.abs(expDelta)>0) drivers.push({label:"expenses "+(expDelta>0?"rose":"fell"), mag:Math.abs(expDelta)});
+    if(Math.abs(incDelta)>0) drivers.push({label:"income "+(incDelta>0?"rose":"fell"), mag:Math.abs(incDelta)});
+    if(Math.abs(invDelta)>0) drivers.push({label:"investments "+(invDelta>0?"grew":"dropped"), mag:Math.abs(invDelta)});
+    if(Math.abs(debtDelta)>0) drivers.push({label:"debt "+(debtDelta>0?"increased":"decreased"), mag:Math.abs(debtDelta)});
+    drivers.sort((a,b)=>b.mag-a.mag);
+    const mainDriver = drivers[0] ? `, mainly because your ${drivers[0].label}` : "";
+    return `Score is ${dir} ${Math.abs(delta)} pt${Math.abs(delta)===1?"":"s"} vs last month${mainDriver}.`;
+  }
   function scoreCardCompact(score){
     const bandLabel = score.band==="strong" ? "Strong" : score.band==="average" ? "Average" : "Needs Attention";
     const bandClass = score.band==="strong" ? "good" : score.band==="average" ? "warn" : "bad";
-    return `<div class="card">
-      <div class="st-sub" style="font-weight:700;color:var(--ink);font-size:13px;margin-bottom:10px;">Pocket Friendly Score</div>
+    const tooltip = `Savings: ${Math.round(score.savingsScore)}/100 · Spending: ${Math.round(score.spendingScore)}/100 · Investments: ${Math.round(score.investmentScore)}/100 · Insurance: ${Math.round(score.insuranceScore)}/100`;
+    return `<div class="card score-card-hover" title="${escapeHtml(tooltip)}">
+      <div class="st-sub" style="font-weight:700;color:var(--ink);font-size:13px;margin-bottom:10px;">Pocket Friendly Score <span style="font-weight:500;color:var(--ink-faint);cursor:help;" title="${escapeHtml(tooltip)}">ⓘ</span></div>
       <div style="display:flex;align-items:center;gap:14px;">
         <div class="donut-wrap" style="width:76px;height:76px;">
-          ${svgGauge(score.overall,76,8,score.color)}
+          ${svgGauge(score.overall,76,8,score.color,"scoreGaugeCircle")}
           <div class="donut-hole" style="inset:11px;">
             <div class="dh-value" style="font-size:18px;">${score.overall}</div>
           </div>
@@ -1119,6 +1288,10 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
           <span class="badge-pill ${bandClass}">${bandLabel}</span>
           <div class="st-sub" style="margin-top:6px;">${score.msg}</div>
         </div>
+      </div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);">
+        <div style="font-size:11.5px;color:var(--ink-faint);line-height:1.5;"><b style="color:var(--ink-soft);">Reason for change:</b> ${scoreChangeReason(score)}</div>
+        <div style="font-size:11.5px;color:var(--ink-faint);margin-top:5px;line-height:1.5;"><b style="color:var(--ink-soft);">To improve:</b> ${scoreImprovementTip(score)}</div>
       </div>
     </div>`;
   }
@@ -1157,25 +1330,41 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     </div>`;
   }
 
+  function investmentReturnsByType(){
+    const byType = {};
+    data.investments.forEach(i=>{
+      const t = i.type||"Other";
+      if(!byType[t]) byType[t] = {invested:0, current:0};
+      byType[t].invested += Number(i.amount||0);
+      byType[t].current += Number(i.currentValue||i.amount||0);
+    });
+    return Object.keys(byType).map(t=>{
+      const {invested,current} = byType[t];
+      const returnPct = invested>0 ? Math.round(((current-invested)/invested)*100) : 0;
+      return {type:t, invested, current, returnPct};
+    }).sort((a,b)=>b.returnPct-a.returnPct);
+  }
   function investmentChangeCard(){
     const cur = totalCurrentValue();
-    const invested = totalInvestedAmount();
-    const gain = cur - invested;
     const prev = prevSnapshot();
     const pct = pctChange(cur, prev?prev.investments:null);
-    const slices = gain>=0
-      ? [{value:invested,color:"var(--purple)"},{value:gain,color:"var(--green)"}]
-      : [{value:cur,color:"var(--purple)"},{value:Math.abs(gain),color:"var(--coral)"}];
+    const byType = investmentReturnsByType();
+    const maxAbs = Math.max(1, ...byType.map(b=>Math.abs(b.returnPct)));
     return `<div class="card">
       <div class="card-head"><h3>📈 Investments</h3>${trendChip(pct)}</div>
-      <div style="display:flex;align-items:center;gap:14px;">
-        ${data.investments.length ? donut(slices,72) : `<div style="width:72px;height:72px;border-radius:50%;background:var(--line);flex-shrink:0;"></div>`}
-        <div class="legend" style="flex:1;">
-          <div class="lg-row"><span class="dot" style="background:var(--purple);"></span><span class="lg-name">Invested</span><span class="lg-pct num">${fmt(invested)}</span></div>
-          <div class="lg-row"><span class="dot" style="background:${gain>=0?'var(--green)':'var(--coral)'};"></span><span class="lg-name">${gain>=0?'Gain':'Loss'}</span><span class="lg-pct num" style="color:${gain>=0?'var(--green-dark)':'var(--coral)'};">${fmt(Math.abs(gain))}</span></div>
-          <div class="lg-row"><span class="lg-name" style="font-weight:700;">Current Value</span><span class="lg-pct num" style="font-weight:700;">${fmt(cur)}</span></div>
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+        <div class="st-sub">Current Value</div><div class="num" style="font-weight:700;">${fmt(cur)}</div>
       </div>
+      ${byType.length ? byType.map(b=>`
+        <div style="margin-bottom:9px;">
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft);margin-bottom:3px;">
+            <span>${escapeHtml(b.type)}</span><b class="num" style="color:${b.returnPct>=0?'var(--green-dark)':'var(--coral)'};">${b.returnPct>=0?'+':''}${b.returnPct}%</b>
+          </div>
+          <div style="height:7px;background:var(--line);border-radius:99px;overflow:hidden;">
+            <div style="height:100%;width:${Math.min(100,Math.abs(b.returnPct)/maxAbs*100)}%;background:${b.returnPct>=0?'var(--green)':'var(--coral)'};border-radius:99px;"></div>
+          </div>
+        </div>`).join("") : `<div class="empty" style="padding:6px 0;">No investments logged yet.</div>`}
+      <div class="st-sub" style="margin-top:4px;">Return % = (current value − invested) ÷ invested, by investment type</div>
     </div>`;
   }
   function debtChangeCard(){
@@ -1202,11 +1391,15 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     const inc = totalIncome()||1;
     const prev = prevSnapshot();
     const prevInc = prev ? (prev.income||1) : null;
+    const invested = totalInvestedAmount();
+    const profit = totalCurrentValue()-invested;
     const savingsRatio = Math.round((netSavings()/inc)*100);
-    const investRatio = Math.round((totalCurrentValue()/inc)*100);
+    const investRatio = invested>0 ? Math.round((profit/invested)*100) : 0;
     const expenseRatio = Math.round((totalExpenses()/inc)*100);
+    const prevInvested = prev && prev.investedAmount!=null ? prev.investedAmount : null;
+    const prevProfit = prev && prevInvested!=null ? (prev.investments-prevInvested) : null;
     const prevSavingsRatio = prev ? Math.round(((prev.income-prev.expenses)/prevInc)*100) : null;
-    const prevInvestRatio = prev ? Math.round((prev.investments/prevInc)*100) : null;
+    const prevInvestRatio = (prevInvested && prevInvested>0) ? Math.round((prevProfit/prevInvested)*100) : null;
     const prevExpenseRatio = prev ? Math.round((prev.expenses/prevInc)*100) : null;
 
     function row(label, val, prevVal, goodWhenUp){
@@ -1501,7 +1694,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
       ${data.income.map(i=>`<tr>
         <td>${escapeHtml(i.source)}</td><td class="num">${fmt(i.amount)}</td><td style="text-transform:capitalize;">${i.frequency}</td><td class="num">${i.date||"—"}</td>
         <td class="row-actions"><button class="mini-btn" onclick="PF.editIncome('${i.id}')">Edit</button><button class="mini-btn del" onclick="PF.deleteItem('income','${i.id}')">Delete</button></td>
-      </tr>`).join("")}</tbody></table>`;
+      </tr>`).join("")}</tbody>
+      <tfoot><tr><td>Total (normalized to monthly)</td><td class="num">${fmt(totalIncome())}</td><td></td><td></td><td></td></tr></tfoot></table>`;
   }
 
   /* ================= RENDER: EXPENSES ================= */
@@ -1528,7 +1722,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
       ${data.expenses.map(e=>`<tr>
         <td>${escapeHtml(e.category)}</td><td class="num">${fmt(e.amount)}</td><td><span class="pill ${e.type}">${e.type}</span></td><td class="num">${e.date||"—"}</td>
         <td class="row-actions"><button class="mini-btn" onclick="PF.editExpense('${e.id}')">Edit</button><button class="mini-btn del" onclick="PF.deleteItem('expenses','${e.id}')">Delete</button></td>
-      </tr>`).join("")}</tbody></table>`;
+      </tr>`).join("")}</tbody>
+      <tfoot><tr><td>Total</td><td class="num">${fmt(totalExpenses())}</td><td></td><td></td><td></td></tr></tfoot></table>`;
   }
 
   /* ================= RENDER: BUDGET PLANNER ================= */
@@ -1577,6 +1772,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     if(!keys.length) return `<div class="empty">No custom category budgets set.</div>`;
     const spentByCat = {};
     data.expenses.forEach(e=>{ spentByCat[e.category]=(spentByCat[e.category]||0)+Number(e.amount||0); });
+    const totBudget = keys.reduce((s,k)=>s+Number(cats[k]||0),0);
+    const totSpent = keys.reduce((s,k)=>s+(spentByCat[k]||0),0);
     return `<table><thead><tr><th>Category</th><th>Budget</th><th>Spent</th><th>Status</th><th></th></tr></thead><tbody>
       ${keys.map(k=>{
         const spent = spentByCat[k]||0, budget = cats[k];
@@ -1584,7 +1781,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
         return `<tr><td>${escapeHtml(k)}</td><td class="num">${fmt(budget)}</td><td class="num">${fmt(spent)}</td>
           <td><span class="badge-pill ${over?'bad':'good'}">${over?'Over':'On Track'}</span></td>
           <td class="row-actions"><button class="mini-btn del" onclick="PF.deleteBudgetCategory('${escapeHtml(k)}')">Delete</button></td></tr>`;
-      }).join("")}</tbody></table>`;
+      }).join("")}</tbody>
+      <tfoot><tr><td>Total</td><td class="num">${fmt(totBudget)}</td><td class="num">${fmt(totSpent)}</td><td></td><td></td></tr></tfoot></table>`;
   }
 
   /* ================= RENDER: SAVINGS & GOALS ================= */
@@ -1646,7 +1844,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
     return `<table><thead><tr><th>Label</th><th>Amount</th><th>Date</th><th></th></tr></thead><tbody>
       ${data.savings.map(s=>`<tr><td>${escapeHtml(s.name)}</td><td class="num">${fmt(s.amount)}</td><td class="num">${s.date||"—"}</td>
         <td class="row-actions"><button class="mini-btn" onclick="PF.editSaving('${s.id}')">Edit</button><button class="mini-btn del" onclick="PF.deleteItem('savings','${s.id}')">Delete</button></td></tr>`).join("")}
-    </tbody></table>`;
+      </tbody><tfoot><tr><td>Total</td><td class="num">${fmt(totalSavingsBalance())}</td><td></td><td></td></tr></tfoot></table>`;
   }
   function renderGoalCards(){
     if(!data.goals.length) return `<div class="card empty" style="grid-column:1/-1;">No goals yet.</div>`;
@@ -1669,7 +1867,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
         <td>${escapeHtml(p.name)} <span class="pill ${p.type}">${p.type}</span></td><td class="num">${fmt(p.coverage)}</td><td class="num">${fmt(p.premium)}</td>
         <td style="text-transform:capitalize;">${p.frequency}</td><td class="num">${p.premiumDate||"—"}</td>
         <td class="row-actions"><button class="mini-btn" onclick="PF.editInsurance('${p.id}')">Edit</button><button class="mini-btn del" onclick="PF.deleteItem('insurance','${p.id}')">Delete</button></td>
-      </tr>`).join("")}</tbody></table>`;
+      </tr>`).join("")}</tbody>
+      <tfoot><tr><td>Total</td><td class="num">${fmt(data.insurance.reduce((s,p)=>s+Number(p.coverage||0),0))}</td><td class="num">${fmt(data.insurance.reduce((s,p)=>s+Number(p.premium||0),0))}</td><td></td><td></td><td></td></tr></tfoot></table>`;
   }
 
   /* ================= RENDER: INVESTMENTS ================= */
@@ -1693,6 +1892,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   }
   function renderInvestmentTable(){
     if(!data.investments.length) return `<div class="empty">No investments logged yet.</div>`;
+    const totInvested = totalInvestedAmount(), totCurrent = totalCurrentValue(), totGain = totCurrent-totInvested;
     return `<table><thead><tr><th>Type</th><th>Name</th><th>Invested</th><th>Current</th><th>Gain</th><th>Date</th><th></th></tr></thead><tbody>
       ${data.investments.map(i=>{
         const cur = Number(i.currentValue||i.amount||0), gain = cur-Number(i.amount||0);
@@ -1701,7 +1901,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
           <td class="num" style="color:${gain>=0?'var(--green-dark)':'var(--coral)'};">${fmt(gain)}</td><td class="num">${i.date||"—"}</td>
           <td class="row-actions"><button class="mini-btn" onclick="PF.editInvestment('${i.id}')">Edit</button><button class="mini-btn del" onclick="PF.deleteItem('investments','${i.id}')">Delete</button></td>
         </tr>`;
-      }).join("")}</tbody></table>`;
+      }).join("")}</tbody>
+      <tfoot><tr><td>Total</td><td></td><td class="num">${fmt(totInvested)}</td><td class="num">${fmt(totCurrent)}</td><td class="num" style="color:${totGain>=0?'var(--green-dark)':'var(--coral)'};">${fmt(totGain)}</td><td></td><td></td></tr></tfoot></table>`;
   }
 
   /* ================= RENDER: DEBT ================= */
@@ -1726,6 +1927,9 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   }
   function renderDebtTable(){
     if(!data.debts.length) return `<div class="empty">No debts logged. If you're debt-free, that's worth celebrating!</div>`;
+    const totOrig = data.debts.reduce((s,d)=>s+Number(d.originalAmount||d.amount||0),0);
+    const totOut = totalDebt();
+    const totEmi = totalMonthlyEMI();
     return `<table><thead><tr><th>Name</th><th>Original Amount</th><th>Outstanding</th><th>Interest</th><th>Monthly EMI</th><th>Next EMI date</th><th></th></tr></thead><tbody>
       ${data.debts.map(d=>`<tr>
         <td>${escapeHtml(d.name)} ${Number(d.interestRate)>15?'<span class="pill want">high interest</span>':''}</td>
@@ -1733,7 +1937,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
         <td class="num">${fmt(d.amount)}</td><td class="num">${d.interestRate}%</td><td class="num">${fmt(d.minPayment)}</td>
         <td class="num">${d.emiDate||"—"}</td>
         <td class="row-actions"><button class="mini-btn" onclick="PF.editDebt('${d.id}')">Edit</button><button class="mini-btn del" onclick="PF.deleteItem('debts','${d.id}')">Delete</button></td>
-      </tr>`).join("")}</tbody></table>`;
+      </tr>`).join("")}</tbody>
+      <tfoot><tr><td>Total</td><td class="num">${fmt(totOrig)}</td><td class="num">${fmt(totOut)}</td><td></td><td class="num">${fmt(totEmi)}</td><td></td><td></td></tr></tfoot></table>`;
   }
 
   /* ================= RENDER: RECURRING PAYMENTS ================= */
@@ -1792,6 +1997,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   }
   function renderRecurringTable(){
     if(!data.recurringPayments.length) return `<div class="empty">No recurring payments tracked yet. Add a SIP, EMI, or insurance premium above.</div>`;
+    const totAmount = data.recurringPayments.reduce((s,p)=>s+Number(p.amount||0),0);
     return `<table><thead><tr><th>Name</th><th>Type</th><th>Amount</th><th>Frequency</th><th>Next due</th><th>Status</th><th></th></tr></thead><tbody>
       ${data.recurringPayments.map(p=>{
         const due = nextDueDate(p.dueDate, p.frequency);
@@ -1806,7 +2012,8 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
           <td><span class="badge-pill ${status.c}">${status.t}</span></td>
           <td class="row-actions"><button class="mini-btn" onclick="PF.editRecurring('${p.id}')">Edit</button><button class="mini-btn del" onclick="PF.deleteItem('recurringPayments','${p.id}')">Delete</button></td>
         </tr>`;
-      }).join("")}</tbody></table>`;
+      }).join("")}</tbody>
+      <tfoot><tr><td>Total <span style="font-weight:500;color:var(--ink-faint);">(mixed frequency)</span></td><td></td><td class="num">${fmt(totAmount)}</td><td></td><td></td><td></td><td></td></tr></tfoot></table>`;
   }
 
   /* ================= RENDER: REPORTS ================= */
@@ -2226,22 +2433,21 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
       document.getElementById("appShell").classList.add("hidden");
       document.getElementById("idName").value = "";
       document.getElementById("idEmail").value = "";
-      routeAfterGate();
-      showToast("Account reset. Create a new account to continue.");
+      showLoginScreen(null);
+      showToast("Account reset. Log in with a different account, or create a new one.");
     },
     switchUser(){
       clearActiveProfileId();
       identity = null; data = null;
       document.getElementById("appShell").classList.add("hidden");
-      routeAfterGate();
+      showLoginScreen(null);
     },
     logout(){
       clearActiveProfileId();
-      sessionStorage.removeItem("pf_gate_unlocked");
       identity = null; data = null;
       document.getElementById("appShell").classList.add("hidden");
-      showGateScreen(null);
-      showToast("Logged out. Enter the access code to continue.");
+      showLoginScreen(null);
+      showToast("Logged out.");
     }
   };
   window.PF = PF;
@@ -2256,11 +2462,7 @@ footer.disclaimer{border-top:1px solid var(--line);padding:16px 26px 26px;text-a
   }
 
   /* ================= BOOT ================= */
-  if(isGateUnlocked()){
-    routeAfterGate();
-  } else {
-    showGateScreen(null);
-  }
+  initialRoute();
 
 })();
 </script>
